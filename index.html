@@ -3,16 +3,40 @@
 <head>
     <title>aitest</title>
     <style>
-        #chat { 
-            border: 1px solid #ccc; 
-            padding: 10px; 
-            height: 300px; 
-            overflow-y: scroll; 
+        body {
+            margin: 0;
+            padding: 10px;
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        #chat {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
             margin-bottom: 10px;
             white-space: pre-wrap;
         }
-        #mensagem { width: 80%; padding: 8px; }
-        button { padding: 8px 15px; }
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #mensagem {
+            flex: 1;
+            padding: 8px;
+        }
+        button {
+            padding: 8px 15px;
+            white-space: nowrap;
+        }
         .message { margin-bottom: 10px; }
         .user-message { color: #0066cc; }
         .ai-message { color: #333; }
@@ -20,9 +44,13 @@
     </style>
 </head>
 <body>
-    <div id="chat"></div>
-    <input id="mensagem" type="text" placeholder="Pergunte algo..." autofocus>
-    <button onclick="enviar()">Enviar</button>
+    <div id="chat-container">
+        <div id="chat"></div>
+        <div id="input-container">
+            <input id="mensagem" type="text" placeholder="Pergunte algo..." autofocus>
+            <button onclick="enviar()">Enviar</button>
+        </div>
+    </div>
 
     <script>
         // Limpa o histórico ao carregar a página
