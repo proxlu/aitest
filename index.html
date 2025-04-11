@@ -9,7 +9,7 @@
             height: 300px; 
             overflow-y: scroll; 
             margin-bottom: 10px;
-            white-space: pre-wrap; /* Preserva quebras de linha */
+            white-space: pre-wrap;
         }
         #mensagem { width: 80%; padding: 8px; }
         button { padding: 8px 15px; }
@@ -25,6 +25,9 @@
     <button onclick="enviar()">Enviar</button>
 
     <script>
+        // Limpa o histórico ao carregar a página
+        sessionStorage.removeItem("geminiChat");
+        
         // Configurações da IA
         const API_KEY = "AIzaSyASnIX-tYqvRXvebvORrnZh_IhE35CiOf8";
         const SYSTEM_PROMPT = {
@@ -34,21 +37,18 @@
             }]
         };
 
-        let historico = JSON.parse(sessionStorage.getItem("geminiChat") || "[]");
+        // Inicia um novo histórico vazio
+        let historico = [];
         const chatDiv = document.getElementById("chat");
 
-        // Função para escapar HTML e converter apenas **negrito**
+        // Função para formatar texto (negrito com ** e preservar outras tags como texto)
         function formatarTexto(texto) {
-            // Primeiro escapamos TODAS as tags HTML para que sejam mostradas como texto
             texto = texto.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            
-            // Depois convertemos apenas **negrito** para <b>negrito</b>
             texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            
             return texto;
         }
 
-        // Exibe o histórico formatado
+        // Exibe o chat
         function exibirChat() {
             chatDiv.innerHTML = '';
             
@@ -74,6 +74,7 @@
             chatDiv.scrollTop = chatDiv.scrollHeight;
         }
 
+        // Chama exibirChat() para mostrar o histórico vazio inicial
         exibirChat();
 
         async function enviar() {
