@@ -3,9 +3,18 @@
 <head>
     <title>aitest</title>
     <style>
-        #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+        #chat { 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            height: 300px; 
+            overflow-y: scroll; 
+            margin-bottom: 10px; 
+            white-space: pre-wrap; /* Isso preserva quebras de linha e espaços */
+        }
         #mensagem { width: 80%; padding: 8px; }
         button { padding: 8px 15px; }
+        .user-message { color: #0066cc; margin-bottom: 10px; }
+        .ai-message { color: #333; margin-bottom: 10px; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -14,8 +23,8 @@
     <button onclick="enviar()">Enviar</button>
 
     <script>
-        // Configurações da IA
-        const API_KEY = "AIzaSyASnIX-tYqvRXvebvORrnZh_IhE35CiOf8"; // Substitua pela sua chave
+        // Configurações da IA (mantidas como no original)
+        const API_KEY = "AIzaSyASnIX-tYqvRXvebvORrnZh_IhE35CiOf8";
         const SYSTEM_PROMPT = {
             role: "model",
             parts: [{
@@ -23,38 +32,43 @@
             }]
         };
 
-        // Recupera o histórico da sessão ou inicia novo
         let historico = JSON.parse(sessionStorage.getItem("geminiChat") || "[]");
         const chatDiv = document.getElementById("chat");
 
-        // Função para formatar texto com quebras de linha
-        function formatarTexto(texto) {
-            return texto.replace(/\n/g, '<br>');
-        }
-
-        // Exibe o histórico ao carregar
+        // Exibe o histórico formatado
         function exibirChat() {
-            chatDiv.innerHTML = historico.map(msg => {
-                const textoFormatado = formatarTexto(msg.parts[0].text);
-                return `<p><strong>${msg.role === 'user' ? 'Você' : 'IA'}:</strong> ${textoFormatado}</p>`;
-            }).join("");
+            chatDiv.innerHTML = '';
+            
+            historico.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = msg.role === 'user' ? 'user-message' : 'ai-message';
+                
+                const strong = document.createElement('strong');
+                strong.textContent = msg.role === 'user' ? 'Você: ' : 'IA: ';
+                
+                const text = document.createElement('span');
+                text.textContent = msg.parts[0].text;
+                
+                messageDiv.appendChild(strong);
+                messageDiv.appendChild(text);
+                chatDiv.appendChild(messageDiv);
+            });
+            
             chatDiv.scrollTop = chatDiv.scrollHeight;
         }
+
         exibirChat();
 
-        // Envia mensagem para o Gemini
         async function enviar() {
             const input = document.getElementById("mensagem");
             const mensagemUsuario = input.value.trim();
             if (!mensagemUsuario) return;
 
-            // Adiciona mensagem do usuário ao histórico
             historico.push({ role: "user", parts: [{ text: mensagemUsuario }] });
             sessionStorage.setItem("geminiChat", JSON.stringify(historico));
             exibirChat();
             input.value = "";
 
-            // Chama a API do Gemini 1.5 Flash
             const resposta = await fetch(
                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-03-25:generateContent?key=${API_KEY}`,
                 {
@@ -70,13 +84,11 @@
             const dados = await resposta.json();
             const textoIA = dados.candidates[0].content.parts[0].text;
 
-            // Adiciona resposta ao histórico
             historico.push({ role: "model", parts: [{ text: textoIA }] });
             sessionStorage.setItem("geminiChat", JSON.stringify(historico));
             exibirChat();
         }
 
-        // Enviar ao pressionar Enter
         document.getElementById("mensagem").addEventListener("keypress", (e) => {
             if (e.key === "Enter") enviar();
         });
