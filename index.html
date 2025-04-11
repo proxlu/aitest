@@ -3,19 +3,17 @@
 <head>
     <title>aitest</title>
     <style>
-        body {
+        html, body {
             margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        body {
             padding: 10px;
-            height: 100vh;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-        }
-        #chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
         }
         #chat {
             flex: 1;
@@ -24,10 +22,12 @@
             overflow-y: auto;
             margin-bottom: 10px;
             white-space: pre-wrap;
+            min-height: 0;
         }
         #input-container {
             display: flex;
             gap: 10px;
+            flex-shrink: 0;
         }
         #mensagem {
             flex: 1;
@@ -44,12 +44,10 @@
     </style>
 </head>
 <body>
-    <div id="chat-container">
-        <div id="chat"></div>
-        <div id="input-container">
-            <input id="mensagem" type="text" placeholder="Pergunte algo..." autofocus>
-            <button onclick="enviar()">Enviar</button>
-        </div>
+    <div id="chat"></div>
+    <div id="input-container">
+        <input id="mensagem" type="text" placeholder="Pergunte algo..." autofocus>
+        <button onclick="enviar()">Enviar</button>
     </div>
 
     <script>
@@ -102,8 +100,19 @@
             chatDiv.scrollTop = chatDiv.scrollHeight;
         }
 
-        // Chama exibirChat() para mostrar o histórico vazio inicial
-        exibirChat();
+        // Ajusta a altura do chat quando a janela é redimensionada
+        function ajustarAltura() {
+            const inputContainer = document.getElementById('input-container');
+            const inputHeight = inputContainer.offsetHeight;
+            chatDiv.style.height = `calc(100% - ${inputHeight + 20}px)`;
+        }
+
+        // Inicialização
+        window.addEventListener('load', () => {
+            ajustarAltura();
+            exibirChat();
+        });
+        window.addEventListener('resize', ajustarAltura);
 
         async function enviar() {
             const input = document.getElementById("mensagem");
