@@ -112,9 +112,10 @@
         .chat-image {
             max-width: 100%;
             max-height: 300px;
-            border-radius: 4px;
             display: block;
-            margin: 0 auto;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #eee;
         }
         
         a {
@@ -251,51 +252,40 @@
         }
 
         function processarTexto(texto) {
-            // 1. Processa URLs de imagens primeiro (prioridade máxima)
-            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)(?=["'\s>]|$)/gi, function(url) {
-                // Limpeza agressiva da URL
-                const cleanUrl = url.trim().replace(/[>"']+$/, '');
-                return `<div class="image-container">
-                          <img src="${cleanUrl}" 
-                               class="chat-image" 
-                               onerror="this.parentElement.remove()">
-                        </div>`;
+            // Passo 1: Converter URLs de imagem
+            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)/gi, function(url) {
+                // Remove caracteres inválidos no final
+                const cleanUrl = url.replace(/[>"']+$/, '');
+                return `<img src="${cleanUrl}" class="chat-image" onerror="this.style.display='none'">`;
             });
-        
-            // 2. Processa links normais (apenas para URLs não-imagem)
+            
+            // Passo 2: Converter outras URLs em links
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                // Ignora se já foi processado como imagem
-                if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('<img')) {
-                    return url;
-                }
+                // Pula se já for uma imagem
+                if (url.includes('class="chat-image"')) return url;
                 return `<a href="${url}" target="_blank">${url}</a>`;
             });
-        
+            
             return texto;
         }
         
         function exibirChat() {
             chatDiv.innerHTML = '';
-            
             historico.forEach(msg => {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${msg.role === 'user' ? 'user-message' : 'ai-message'}`;
                 
                 const strong = document.createElement('strong');
                 strong.textContent = msg.role === 'user' ? 'Você: ' : 'IA: ';
-                messageDiv.appendChild(strong);
                 
                 const content = document.createElement('span');
-                if (msg.role === 'model') {
-                    content.innerHTML = processarTexto(msg.parts[0].text);
-                } else {
-                    content.textContent = msg.parts[0].text;
-                }
-                messageDiv.appendChild(content);
+                content.innerHTML = msg.role === 'model' 
+                    ? processarTexto(msg.parts[0].text) 
+                    : msg.parts[0].text;
                 
+                messageDiv.append(strong, content);
                 chatDiv.appendChild(messageDiv);
             });
-            
             chatDiv.scrollTop = chatDiv.scrollHeight;
         }
 
