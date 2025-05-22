@@ -116,7 +116,6 @@
             display: block;
             margin: 0 auto;
         }
-        
         a {
             color: #0066cc;
             text-decoration: underline;
@@ -251,9 +250,9 @@
         }
 
         function processarTexto(texto) {
-            // 1. Processa URLs de imagens com tratamento completo
-            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*?)?)(?=["'\s>]|$)/gi, (url) => {
-                const cleanUrl = url.replace(/[>"']+$/, '').replace(/\s+$/, '');
+            // 1. Processa URLs de imagem com tratamento completo
+            texto = texto.replace(/(https?:\/\/[^\s"']+?\.(jpg|jpeg)(\?[^\s"']*?)?)/gi, (url) => {
+                const cleanUrl = url.replace(/["']+$/, ''); // Remove aspas finais
                 return `<div class="image-container">
                           <img src="${cleanUrl}" 
                                class="chat-image" 
@@ -261,7 +260,7 @@
                         </div>`;
             });
         
-            // 2. Processa outros links
+            // 2. Processa outros links (não-imagem)
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, (url) => {
                 return url.includes('.jpg') || url.includes('.jpeg') ? url : `<a href="${url}" target="_blank">${url}</a>`;
             });
