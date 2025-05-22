@@ -104,13 +104,15 @@
         .image-wrapper {
             margin: 10px 0;
             text-align: center;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 8px;
         }
         
         .chat-image {
             max-width: 100%;
             max-height: 300px;
-            border-radius: 8px;
-            border: 1px solid #eee;
+            border-radius: 4px;
             display: block;
             margin: 0 auto;
         }
@@ -242,48 +244,38 @@
             return texto;
         }
 
-        // Função para formatar texto (negrito com ** e preservar outras tags como texto)
-        function formatarTexto(texto) {
-            // Primeiro trata os negritos
-            texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            
-            // Depois processa as imagens
-            texto = processarImagens(texto);
-            
-            // Por último, transforma URLs restantes em links
-            texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                // Ignora URLs que já foram transformadas em imagens
-                if (url.match(/\.(jpg|jpeg)(?:\?[^\s]*)?$/i)) {
-                    return url;
-                }
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-            });
-            
-            return texto;
-        }
-
         function processarTexto(texto) {
-            // 1. Processa primeiro URLs de imagens (incluindo com parâmetros)
-            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)(?=["'\s]|$)/gi, function(url) {
-                // Limpa a URL removendo caracteres inválidos no final
+            // 1. Primeiro processa markdown [texto](url)
+            texto = texto.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, texto, url) {
+                // Se for imagem (.jpg/.jpeg)
+                if (url.match(/\.(jpg|jpeg)(\?|$)/i)) {
+                    return `<div class="image-wrapper"><img src="${url}" class="chat-image" alt="${texto}" onerror="this.parentElement.remove()"></div>`;
+                }
+                return `<a href="${url}" target="_blank">${texto}</a>`;
+            });
+        
+            // 2. Processa URLs puras de imagens (incluindo com parâmetros)
+            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)/gi, function(url) {
+                // Remove caracteres inválidos no final
                 const cleanUrl = url.replace(/[>"']+$/, '');
                 return `<div class="image-wrapper"><img src="${cleanUrl}" class="chat-image" alt="Imagem do veículo" onerror="this.parentElement.remove()"></div>`;
             });
         
-            // 2. Processa links normais (apenas para URLs que não são imagens)
+            // 3. Processa outros links (não-imagem)
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                // Ignora se já foi processado como imagem
-                if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('<img')) return url;
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+                // Ignora se já foi processado como imagem ou markdown
+                if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('<img') || url.includes('<a ')) {
+                    return url;
+                }
+                return `<a href="${url}" target="_blank">${url}</a>`;
             });
         
-            // 3. Processa negritos
+            // 4. Processa negritos (**texto**)
             texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
         
             return texto;
         }
-
-        // Função exibirChat modificada
+        
         function exibirChat() {
             chatDiv.innerHTML = '';
             
@@ -297,7 +289,6 @@
                 
                 const content = document.createElement('span');
                 if (msg.role === 'model') {
-                    // Processa o texto para formatar negritos, imagens e links
                     content.innerHTML = processarTexto(msg.parts[0].text);
                 } else {
                     content.textContent = msg.parts[0].text;
