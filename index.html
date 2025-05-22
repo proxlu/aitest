@@ -103,10 +103,10 @@
         }
         .image-wrapper {
             margin: 10px 0;
-            text-align: center;
+            padding: 5px;
             background: #f5f5f5;
-            padding: 10px;
             border-radius: 8px;
+            text-align: center;
         }
         
         .chat-image {
@@ -245,26 +245,19 @@
         }
 
         function processarTexto(texto) {
-            // 1. Corrige links mal formados (remove HTML vazando)
-            texto = texto.replace(/"[^>]*>https?:\/\/[^\s<]+/g, function(match) {
-                return match.split('>').pop(); // Mantém apenas a URL
-            });
-        
-            // 2. Processa URLs de imagens (incluindo com parâmetros)
-            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)/gi, function(url) {
-                // Remove caracteres inválidos no final
-                const cleanUrl = url.replace(/[>"']+$/, '');
+            // 1. Processa URLs de imagens (incluindo com parâmetros complexos)
+            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(?:[^\s>]*)?)/gi, function(url) {
+                // Limpeza final da URL
+                const cleanUrl = url.split(/[\s>"']/)[0];
                 return `<div class="image-wrapper"><img src="${cleanUrl}" class="chat-image" onerror="this.parentElement.remove()"></div>`;
             });
         
-            // 3. Processa links normais (não-imagem)
+            // 2. Processa links normais (não-imagem)
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                // Ignora URLs já processadas como imagens
-                if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('<img')) return url;
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+                return url.includes('<img') ? url : `<a href="${url}" target="_blank">${url}</a>`;
             });
         
-            // 4. Processa negritos
+            // 3. Processa negritos
             texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
         
             return texto;
