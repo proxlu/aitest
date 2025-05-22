@@ -101,6 +101,19 @@
                 max-height: 60vh;
             }
         }
+        .image-wrapper {
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .chat-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            display: block;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
@@ -250,29 +263,23 @@
         }
 
         function processarTexto(texto) {
-            // Regex melhorada para capturar URLs de imagem com todos os parâmetros
-            const imgRegex = /(https?:\/\/[^\s]+?\.(jpg|jpeg)(?:\?[^\s]*?)?)(?=["'\s>]|$)/gi;
-            
-            // Processa imagens primeiro
-            texto = texto.replace(imgRegex, function(url) {
-                // Cria um elemento de imagem seguro
-                return `<img src="${url}" class="chat-image" alt="Foto do veículo" onerror="this.style.display='none'">`;
+            // 1. Processa primeiro URLs de imagens (incluindo com parâmetros)
+            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)(?=["'\s]|$)/gi, function(url) {
+                // Limpa a URL removendo caracteres inválidos no final
+                const cleanUrl = url.replace(/[>"']+$/, '');
+                return `<div class="image-wrapper"><img src="${cleanUrl}" class="chat-image" alt="Imagem do veículo" onerror="this.parentElement.remove()"></div>`;
             });
-            
-            // Depois processa outros links (não-imagem)
+        
+            // 2. Processa links normais (apenas para URLs que não são imagens)
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                // Pula URLs que já foram convertidas em imagens
-                if (url.includes('<img')) return url;
+                // Ignora se já foi processado como imagem
+                if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('<img')) return url;
                 return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
-            
-            // Processa negritos
+        
+            // 3. Processa negritos
             texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            
-            // Remove qualquer tag HTML malformada que possa ter sobrado
-            texto = texto.replace(/<img[^>]*$/, ''); // Remove tags img incompletas
-            texto = texto.replace(/<a[^>]*$/, '');   // Remove tags a incompletas
-            
+        
             return texto;
         }
 
