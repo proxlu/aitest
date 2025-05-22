@@ -249,22 +249,26 @@
             return texto;
         }
 
+        // Substitua a função processarTexto por esta versão atualizada
         function processarTexto(texto) {
-            // Primeiro, substituir URLs de imagens por tags img
-            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)/gi, function(url) {
-                // Limpa a URL removendo caracteres inválidos no final
-                url = url.replace(/"|'|>$/, '');
-                return `<img src="${url}" class="chat-image" alt="Imagem do veículo" onerror="this.style.display='none'">`;
+            // Regex melhorada para capturar URLs de imagem mesmo com parâmetros
+            const imgRegex = /(https?:\/\/[^\s]+?\.(jpg|jpeg)([^\s]*))/gi;
+            
+            // Primeiro processa imagens
+            texto = texto.replace(imgRegex, function(url) {
+                // Remove quaisquer caracteres inválidos que possam ter sido capturados
+                url = url.replace(/["'<>]$/, '');
+                return `<img src="${url}" class="chat-image" alt="Imagem" onerror="this.style.display='none'">`;
             });
             
-            // Depois, substituir outras URLs por links
+            // Depois processa outros links (não-imagem)
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                // Se já foi processado como imagem, não transforma em link
+                // Pula URLs que já foram convertidas em imagens
                 if (url.includes('<img')) return url;
-                return `<a href="${url}" target="_blank">${url}</a>`;
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
             
-            // Finalmente, processar negritos
+            // Finalmente processa negritos
             texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
             
             return texto;
