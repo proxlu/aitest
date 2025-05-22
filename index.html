@@ -251,10 +251,9 @@
         }
 
         function processarTexto(texto) {
-            // 1. Processa URLs de imagem (incluindo parâmetros)
-            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)/gi, function(url) {
-                // Remove caracteres inválidos no final
-                const cleanUrl = url.split(/["'\s>]/)[0];
+            // 1. Processa URLs de imagens com tratamento completo
+            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*?)?)(?=["'\s>]|$)/gi, (url) => {
+                const cleanUrl = url.replace(/[>"']+$/, '').replace(/\s+$/, '');
                 return `<div class="image-container">
                           <img src="${cleanUrl}" 
                                class="chat-image" 
@@ -263,8 +262,8 @@
             });
         
             // 2. Processa outros links
-            texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                return url.includes('class="chat-image"') ? url : `<a href="${url}" target="_blank">${url}</a>`;
+            texto = texto.replace(/(https?:\/\/[^\s]+)/gi, (url) => {
+                return url.includes('.jpg') || url.includes('.jpeg') ? url : `<a href="${url}" target="_blank">${url}</a>`;
             });
         
             return texto;
