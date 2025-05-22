@@ -245,32 +245,26 @@
         }
 
         function processarTexto(texto) {
-            // 1. Primeiro processa markdown [texto](url)
-            texto = texto.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, texto, url) {
-                // Se for imagem (.jpg/.jpeg)
-                if (url.match(/\.(jpg|jpeg)(\?|$)/i)) {
-                    return `<div class="image-wrapper"><img src="${url}" class="chat-image" alt="${texto}" onerror="this.parentElement.remove()"></div>`;
-                }
-                return `<a href="${url}" target="_blank">${texto}</a>`;
+            // 1. Corrige links mal formados (remove HTML vazando)
+            texto = texto.replace(/"[^>]*>https?:\/\/[^\s<]+/g, function(match) {
+                return match.split('>').pop(); // Mantém apenas a URL
             });
         
-            // 2. Processa URLs puras de imagens (incluindo com parâmetros)
+            // 2. Processa URLs de imagens (incluindo com parâmetros)
             texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)/gi, function(url) {
                 // Remove caracteres inválidos no final
                 const cleanUrl = url.replace(/[>"']+$/, '');
-                return `<div class="image-wrapper"><img src="${cleanUrl}" class="chat-image" alt="Imagem do veículo" onerror="this.parentElement.remove()"></div>`;
+                return `<div class="image-wrapper"><img src="${cleanUrl}" class="chat-image" onerror="this.parentElement.remove()"></div>`;
             });
         
-            // 3. Processa outros links (não-imagem)
+            // 3. Processa links normais (não-imagem)
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                // Ignora se já foi processado como imagem ou markdown
-                if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('<img') || url.includes('<a ')) {
-                    return url;
-                }
-                return `<a href="${url}" target="_blank">${url}</a>`;
+                // Ignora URLs já processadas como imagens
+                if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('<img')) return url;
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
         
-            // 4. Processa negritos (**texto**)
+            // 4. Processa negritos
             texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
         
             return texto;
@@ -300,7 +294,6 @@
             
             chatDiv.scrollTop = chatDiv.scrollHeight;
         }
-
 
         // Função para dividir mensagens com base em ***
         function splitMessages(text) {
