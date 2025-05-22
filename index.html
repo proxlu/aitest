@@ -101,13 +101,12 @@
                 max-height: 60vh;
             }
         }
-        .image-wrapper {
+        .image-container {
             margin: 10px 0;
             padding: 5px;
             background: #f5f5f5;
             border-radius: 8px;
             text-align: center;
-            border: 1px solid #ddd;
         }
         
         .chat-image {
@@ -116,6 +115,12 @@
             border-radius: 4px;
             display: block;
             margin: 0 auto;
+        }
+        
+        a {
+            color: #0066cc;
+            text-decoration: underline;
+            word-break: break-all;
         }
     </style>
 </head>
@@ -246,25 +251,25 @@
         }
 
         function processarTexto(texto) {
-            // 1. Processa URLs de imagens com tratamento robusto
-            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(?:\?[^\s]*)?)(?=["'\s>]|$)/gi, function(url) {
-                // Limpeza agressiva de caracteres inválidos
-                const cleanUrl = url.replace(/[>"']+$/, '').replace(/\s+$/, '');
-                return `<div class="image-wrapper">
+            // 1. Processa URLs de imagens primeiro (prioridade máxima)
+            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)(?=["'\s>]|$)/gi, function(url) {
+                // Limpeza agressiva da URL
+                const cleanUrl = url.trim().replace(/[>"']+$/, '');
+                return `<div class="image-container">
                           <img src="${cleanUrl}" 
                                class="chat-image" 
-                               alt="Foto do veículo"
                                onerror="this.parentElement.remove()">
                         </div>`;
             });
         
-            // 2. Processa links normais (não-imagem)
+            // 2. Processa links normais (apenas para URLs não-imagem)
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                return url.includes('class="chat-image"') ? url : `<a href="${url}" target="_blank">${url}</a>`;
+                // Ignora se já foi processado como imagem
+                if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('<img')) {
+                    return url;
+                }
+                return `<a href="${url}" target="_blank">${url}</a>`;
             });
-        
-            // 3. Processa negritos
-            texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
         
             return texto;
         }
