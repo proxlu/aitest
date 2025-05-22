@@ -249,16 +249,14 @@
             return texto;
         }
 
-        // Substitua a função processarTexto por esta versão atualizada
         function processarTexto(texto) {
-            // Regex melhorada para capturar URLs de imagem mesmo com parâmetros
-            const imgRegex = /(https?:\/\/[^\s]+?\.(jpg|jpeg)([^\s]*))/gi;
+            // Regex melhorada para capturar URLs de imagem com todos os parâmetros
+            const imgRegex = /(https?:\/\/[^\s]+?\.(jpg|jpeg)(?:\?[^\s]*?)?)(?=["'\s>]|$)/gi;
             
-            // Primeiro processa imagens
+            // Processa imagens primeiro
             texto = texto.replace(imgRegex, function(url) {
-                // Remove quaisquer caracteres inválidos que possam ter sido capturados
-                url = url.replace(/["'<>]$/, '');
-                return `<img src="${url}" class="chat-image" alt="Imagem" onerror="this.style.display='none'">`;
+                // Cria um elemento de imagem seguro
+                return `<img src="${url}" class="chat-image" alt="Foto do veículo" onerror="this.style.display='none'">`;
             });
             
             // Depois processa outros links (não-imagem)
@@ -268,8 +266,12 @@
                 return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
             
-            // Finalmente processa negritos
+            // Processa negritos
             texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            
+            // Remove qualquer tag HTML malformada que possa ter sobrado
+            texto = texto.replace(/<img[^>]*$/, ''); // Remove tags img incompletas
+            texto = texto.replace(/<a[^>]*$/, '');   // Remove tags a incompletas
             
             return texto;
         }
