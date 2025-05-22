@@ -112,10 +112,9 @@
         .chat-image {
             max-width: 100%;
             max-height: 300px;
-            display: block;
-            margin: 10px 0;
             border-radius: 4px;
-            border: 1px solid #eee;
+            display: block;
+            margin: 0 auto;
         }
         
         a {
@@ -252,20 +251,22 @@
         }
 
         function processarTexto(texto) {
-            // Passo 1: Converter URLs de imagem
+            // 1. Processa URLs de imagem (incluindo parâmetros)
             texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)/gi, function(url) {
                 // Remove caracteres inválidos no final
-                const cleanUrl = url.replace(/[>"']+$/, '');
-                return `<img src="${cleanUrl}" class="chat-image" onerror="this.style.display='none'">`;
+                const cleanUrl = url.split(/["'\s>]/)[0];
+                return `<div class="image-container">
+                          <img src="${cleanUrl}" 
+                               class="chat-image" 
+                               onerror="this.parentElement.remove()">
+                        </div>`;
             });
-            
-            // Passo 2: Converter outras URLs em links
+        
+            // 2. Processa outros links
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                // Pula se já for uma imagem
-                if (url.includes('class="chat-image"')) return url;
-                return `<a href="${url}" target="_blank">${url}</a>`;
+                return url.includes('class="chat-image"') ? url : `<a href="${url}" target="_blank">${url}</a>`;
             });
-            
+        
             return texto;
         }
         
