@@ -245,16 +245,21 @@
         }
 
         function processarTexto(texto) {
-            // 1. Processa URLs de imagens (incluindo com parâmetros complexos)
-            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(?:[^\s>]*)?)/gi, function(url) {
-                // Limpeza final da URL
-                const cleanUrl = url.split(/[\s>"']/)[0];
-                return `<div class="image-wrapper"><img src="${cleanUrl}" class="chat-image" onerror="this.parentElement.remove()"></div>`;
+            // 1. Processa URLs de imagens com tratamento robusto
+            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(?:\?[^\s]*)?)(?=["'\s>]|$)/gi, function(url) {
+                // Limpeza agressiva de caracteres inválidos
+                const cleanUrl = url.replace(/[>"']+$/, '').replace(/\s+$/, '');
+                return `<div class="image-wrapper">
+                          <img src="${cleanUrl}" 
+                               class="chat-image" 
+                               alt="Foto do veículo"
+                               onerror="this.parentElement.remove()">
+                        </div>`;
             });
         
             // 2. Processa links normais (não-imagem)
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
-                return url.includes('<img') ? url : `<a href="${url}" target="_blank">${url}</a>`;
+                return url.includes('class="chat-image"') ? url : `<a href="${url}" target="_blank">${url}</a>`;
             });
         
             // 3. Processa negritos
