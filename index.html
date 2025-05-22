@@ -222,7 +222,7 @@
                 // Adiciona a imagem ao container
                 container.appendChild(img);
                 
-                // Substitui a URL pelo HTML da imagem no texto
+                // Substitui a URL pelo container com a imagem
                 texto = texto.replace(url, container.outerHTML);
             });
             
@@ -231,12 +231,11 @@
 
         // Função para formatar texto (negrito com ** e preservar outras tags como texto)
         function formatarTexto(texto) {
-            // Primeiro processa as imagens
-            texto = processarImagens(texto);
-            
-            // Depois trata os negritos e escapa tags HTML
-            texto = texto.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // Primeiro trata os negritos
             texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            
+            // Depois processa as imagens
+            texto = processarImagens(texto);
             
             // Por último, transforma URLs restantes em links
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
@@ -250,7 +249,7 @@
             return texto;
         }
 
-        // Exibe o chat
+        // Exibe o chat - FUNÇÃO MODIFICADA
         function exibirChat() {
             chatDiv.innerHTML = '';
             
@@ -262,9 +261,19 @@
                 strong.textContent = msg.role === 'user' ? 'Você: ' : 'IA: ';
                 
                 const text = document.createElement('span');
+                
                 if (msg.role === 'model') {
-                    // Usamos innerHTML para renderizar as imagens e links
-                    text.innerHTML = formatarTexto(msg.parts[0].text);
+                    // Processa o texto para formatar negritos, imagens e links
+                    const textoFormatado = formatarTexto(msg.parts[0].text);
+                    
+                    // Cria um elemento temporário para converter string HTML em nós DOM
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = textoFormatado;
+                    
+                    // Adiciona cada nó filho ao span de texto
+                    while (tempDiv.firstChild) {
+                        text.appendChild(tempDiv.firstChild);
+                    }
                 } else {
                     text.textContent = msg.parts[0].text;
                 }
