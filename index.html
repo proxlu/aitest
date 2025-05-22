@@ -249,7 +249,28 @@
             return texto;
         }
 
-        // Exibe o chat - FUNÇÃO MODIFICADA
+        function processarTexto(texto) {
+            // Primeiro, substituir URLs de imagens por tags img
+            texto = texto.replace(/(https?:\/\/[^\s]+?\.(jpg|jpeg)(\?[^\s]*)?)/gi, function(url) {
+                // Limpa a URL removendo caracteres inválidos no final
+                url = url.replace(/"|'|>$/, '');
+                return `<img src="${url}" class="chat-image" alt="Imagem do veículo" onerror="this.style.display='none'">`;
+            });
+            
+            // Depois, substituir outras URLs por links
+            texto = texto.replace(/(https?:\/\/[^\s]+)/gi, function(url) {
+                // Se já foi processado como imagem, não transforma em link
+                if (url.includes('<img')) return url;
+                return `<a href="${url}" target="_blank">${url}</a>`;
+            });
+            
+            // Finalmente, processar negritos
+            texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            
+            return texto;
+        }
+
+        // Função exibirChat modificada
         function exibirChat() {
             chatDiv.innerHTML = '';
             
@@ -259,32 +280,23 @@
                 
                 const strong = document.createElement('strong');
                 strong.textContent = msg.role === 'user' ? 'Você: ' : 'IA: ';
+                messageDiv.appendChild(strong);
                 
-                const text = document.createElement('span');
-                
+                const content = document.createElement('span');
                 if (msg.role === 'model') {
                     // Processa o texto para formatar negritos, imagens e links
-                    const textoFormatado = formatarTexto(msg.parts[0].text);
-                    
-                    // Cria um elemento temporário para converter string HTML em nós DOM
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = textoFormatado;
-                    
-                    // Adiciona cada nó filho ao span de texto
-                    while (tempDiv.firstChild) {
-                        text.appendChild(tempDiv.firstChild);
-                    }
+                    content.innerHTML = processarTexto(msg.parts[0].text);
                 } else {
-                    text.textContent = msg.parts[0].text;
+                    content.textContent = msg.parts[0].text;
                 }
+                messageDiv.appendChild(content);
                 
-                messageDiv.appendChild(strong);
-                messageDiv.appendChild(text);
                 chatDiv.appendChild(messageDiv);
             });
             
             chatDiv.scrollTop = chatDiv.scrollHeight;
         }
+
 
         // Função para dividir mensagens com base em ***
         function splitMessages(text) {
