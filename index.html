@@ -218,7 +218,7 @@
         // Função para detectar URLs de imagens e substituir por tags img
         function processarImagens(texto) {
             // Expressão regular para encontrar URLs de imagens
-            const regex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg)(?:\?[^\s]*)?)/gi;
+            const regex = /(https?:\/\/[^\s"')]+?\.(jpg|jpeg)(\?[^\s"')]*)?)/gi
             
             // Encontra todas as URLs de imagens no texto
             const imagens = texto.match(regex);
@@ -254,8 +254,8 @@
             texto = texto.replace(/(https?:\/\/[^\s"']+)\n(&|\?)/gi, '$1$2');
         
             // Passo 2: Processar URLs de imagem completas
-            texto = texto.replace(/(https?:\/\/[^\s"']+?\.(jpg|jpeg)(\?[^\s"']*?)?)/gi, (url) => {
-                const cleanUrl = url.replace(/["'\s]+$/, ''); // Remove espaços e aspas finais
+            texto = texto.replace(/(https?:\/\/[^\s"')]+?\.(jpg|jpeg)(\?[^\s"')]*)?)/gi, (url) => {
+                const cleanUrl = url.replace(/["'\s]+$/, '');
                 return `<div class="image-container">
                           <img src="${cleanUrl}" 
                                class="chat-image" 
