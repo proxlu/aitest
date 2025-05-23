@@ -138,6 +138,7 @@
         let isDataLoaded = false;
         let historico = [];
         let isSendingMessages = false;
+        const chatDiv = document.getElementById("chat");
 
         async function enviar() {
             const input = document.getElementById("mensagem");
@@ -204,7 +205,6 @@
 
         // Função para exibir o chat com scroll não-bloqueante
         function exibirChat() {
-            const chatDiv = document.getElementById("chat");
             chatDiv.innerHTML = '';
             
             historico.forEach(msg => {
