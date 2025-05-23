@@ -217,7 +217,7 @@
 
         function processarImagens(texto) {
             // Expressão regular para encontrar URLs de imagens, incluindo parâmetros após .jpg/.jpeg
-            const regex = /(https?:\/\/[^\s"'()\]>]+?\.(jpg|jpeg)(\?[^\s"'()\]>]*)?)/gi;
+            const regex = /(https?:\/\/[^\s"']+?\.(jpg|jpeg)(\?[^\s"']*)?)/gi;
             
             // Encontra todas as URLs de imagens no texto
             const imagens = texto.match(regex);
@@ -253,9 +253,9 @@
             // Passo 0: Juntar URLs quebradas em múltiplas linhas
             texto = texto.replace(/(https?:\/\/[^\s"']+)\n(&|\?)/gi, '$1$2');
         
-            // Passo 1: Imagem em markdown ![alt](url.jpg?param)
+            // Passo 1: Imagem em markdown ![alt](url)
             texto = texto.replace(
-                /!\[([^\]]*)\]\((https?:\/\/[^\s)]+?\.(jpg|jpeg)(\?[^\s)]*)?)\)/gi,
+                /!\[([^\]]*)\]\((https?:\/\/[^\s)]+?\.(jpg|jpeg)[^\s)]*)\)/gi,
                 (match, alt, url) =>
                     `<div class="image-container"><img src="${url}" alt="${alt}" class="chat-image" onerror="this.parentElement.remove()"></div>`
             );
@@ -269,7 +269,7 @@
         
             // Passo 3: Imagem direta (nua) .jpg/.jpeg
             texto = texto.replace(
-                /(https?:\/\/[^\s"'<>()]+?\.(jpg|jpeg)(\?[^\s"'<>()]*)?)/gi,
+                /(https?:\/\/[^\s"']+?\.(jpg|jpeg)(\?[^\s"']*)?)/gi,
                 (url) =>
                     `<div class="image-container">
                         <img src="${url}" 
@@ -280,7 +280,7 @@
         
             // Passo 4: Outros links diretos
             texto = texto.replace(
-                /(https?:\/\/[^\s"'<>()]+)/gi,
+                /(https?:\/\/[^\s"')]+)/gi,
                 (url) => `<a href="${url}" target="_blank">${url}</a>`
             );
         
