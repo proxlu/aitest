@@ -215,10 +215,9 @@
             exibirChat();
         }
 
-        // Função para detectar URLs de imagens e substituir por tags img
         function processarImagens(texto) {
-            // Expressão regular para encontrar URLs de imagens
-            const regex = /(https?:\/\/[^\s"'()\]>]+?\.(jpg|jpeg)(\?[^\s"'()\]>]*)?)/gi
+            // Expressão regular para encontrar URLs de imagens, incluindo parâmetros após .jpg/.jpeg
+            const regex = /(https?:\/\/[^\s"'()\]>]+?\.(jpg|jpeg)(\?[^\s"'()\]>]*)?)/gi;
             
             // Encontra todas as URLs de imagens no texto
             const imagens = texto.match(regex);
@@ -243,7 +242,8 @@
                 container.appendChild(img);
                 
                 // Substitui a URL pelo container com a imagem
-                texto = texto.replace(url, container.outerHTML);
+                // Usa regex para garantir que só substitui a URL exata (caso haja repetições)
+                texto = texto.replace(new RegExp(url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), container.outerHTML);
             });
             
             return texto;
@@ -253,35 +253,35 @@
             // Passo 0: Juntar URLs quebradas em múltiplas linhas
             texto = texto.replace(/(https?:\/\/[^\s"']+)\n(&|\?)/gi, '$1$2');
         
-            // Passo 1: Imagem em markdown ![alt](url)
+            // Passo 1: Imagem em markdown ![alt](url.jpg?param)
             texto = texto.replace(
-              /!\[([^\]]*)\]\((https?:\/\/[^\s"'()\]>]+?\.(jpg|jpeg)(\?[^\s"'()\]>]*)?)\)/gi,
-              (match, alt, url) =>
-                `<div class="image-container"><img src="${url}" alt="${alt}" class="chat-image" onerror="this.parentElement.remove()"></div>`
+                /!\[([^\]]*)\]\((https?:\/\/[^\s)]+?\.(jpg|jpeg)(\?[^\s)]*)?)\)/gi,
+                (match, alt, url) =>
+                    `<div class="image-container"><img src="${url}" alt="${alt}" class="chat-image" onerror="this.parentElement.remove()"></div>`
             );
-            
+        
             // Passo 2: Link em markdown [alt](url)
             texto = texto.replace(
-              /\[([^\]]*)\]\((https?:\/\/[^\s"'()\]>]+)\)/gi,
-              (match, alt, url) =>
-                `<a href="${url}" target="_blank">${alt || url}</a>`
+                /\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/gi,
+                (match, alt, url) =>
+                    `<a href="${url}" target="_blank">${alt || url}</a>`
             );
-            
+        
             // Passo 3: Imagem direta (nua) .jpg/.jpeg
             texto = texto.replace(
-              /(https?:\/\/[^\s"'()\]>]+?\.(jpg|jpeg)(\?[^\s"'()\]>]*)?)/gi,
-              (url) =>
-                `<div class="image-container">
-                    <img src="${url}" 
-                         class="chat-image" 
-                         onerror="this.parentElement.remove()">
-                 </div>`
+                /(https?:\/\/[^\s"'<>()]+?\.(jpg|jpeg)(\?[^\s"'<>()]*)?)/gi,
+                (url) =>
+                    `<div class="image-container">
+                        <img src="${url}" 
+                             class="chat-image" 
+                             onerror="this.parentElement.remove()">
+                    </div>`
             );
-            
+        
             // Passo 4: Outros links diretos
             texto = texto.replace(
-              /(https?:\/\/[^\s"'()\]>]+)/gi,
-              (url) => `<a href="${url}" target="_blank">${url}</a>`
+                /(https?:\/\/[^\s"'<>()]+)/gi,
+                (url) => `<a href="${url}" target="_blank">${url}</a>`
             );
         
             return texto;
