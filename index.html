@@ -250,22 +250,33 @@
         }
 
         function processarTexto(texto) {
-            // Passo 1: Juntar URLs quebradas em múltiplas linhas
+            // Passo 0: Juntar URLs quebradas em múltiplas linhas
             texto = texto.replace(/(https?:\/\/[^\s"']+)\n(&|\?)/gi, '$1$2');
         
-            // Passo 2: Processar URLs de imagem completas
-            texto = texto.replace(/(https?:\/\/[^\s"']+?\.(jpg|jpeg)((\?|&)[^\s"']*)?)/gi, (url) => {
-                const cleanUrl = url.replace(/["'\s]+$/, '');
+            // Passo 1: Imagem em markdown ![alt](url)
+            texto = texto.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s"')]+?\.(jpg|jpeg)((\?|&)[^\s"')]+)?)\)/gi,
+                (match, alt, url) => 
+                    `<div class="image-container"><img src="${url}" alt="${alt}" class="chat-image" onerror="this.parentElement.remove()"></div>`
+            );
+        
+            // Passo 2: Link em markdown [alt](url)
+            texto = texto.replace(/\[([^\]]*)\]\((https?:\/\/[^\s"')]+)\)/gi,
+                (match, alt, url) =>
+                    `<a href="${url}" target="_blank">${alt || url}</a>`
+            );
+        
+            // Passo 3: Imagem direta (nua) .jpg/.jpeg
+            texto = texto.replace(/(https?:\/\/[^\s"')]+?\.(jpg|jpeg)((\?|&)[^\s"')]+)*)/gi, (url) => {
                 return `<div class="image-container">
-                          <img src="${cleanUrl}" 
+                          <img src="${url}" 
                                class="chat-image" 
                                onerror="this.parentElement.remove()">
                         </div>`;
             });
         
-            // Passo 3: Processar outros links
-            texto = texto.replace(/(https?:\/\/[^\s]+)/gi, (url) => {
-                return url.includes('.jpg') || url.includes('.jpeg') ? url : `<a href="${url}" target="_blank">${url}</a>`;
+            // Passo 4: Outros links diretos
+            texto = texto.replace(/(https?:\/\/[^\s"')]+)/gi, (url) => {
+                return `<a href="${url}" target="_blank">${url}</a>`;
             });
         
             return texto;
