@@ -102,19 +102,20 @@
             }
         }
         .image-container {
-            margin: 10px 0;
-            padding: 5px;
-            background: #f5f5f5;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
             border-radius: 8px;
-            text-align: center;
+            border: 1px solid #dee2e6;
         }
         
         .chat-image {
             max-width: 100%;
-            max-height: 300px;
-            border-radius: 4px;
+            max-height: 400px;
+            border-radius: 6px;
             display: block;
             margin: 0 auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         a {
             color: #0066cc;
@@ -250,12 +251,12 @@
         }
 
         function processarTexto(texto) {
-            // Passo 1: Juntar URLs quebradas em múltiplas linhas
-            texto = texto.replace(/(https?:\/\/[^\s"']+)\n(&|\?)/gi, '$1$2');
-        
-            // Passo 2: Processar URLs de imagem completas
-            texto = texto.replace(/(https?:\/\/[^\s"']+?\.(jpg|jpeg)(\?[^\s"']*?)?)/gi, (url) => {
-                const cleanUrl = url.replace(/["'\s]+$/, ''); // Remove espaços e aspas finais
+            // Regex completamente nova e mais precisa
+            const imageRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg)(?:[^\s>]*))(?![\wÀ-ú])/gi;
+            
+            // Processa imagens
+            texto = texto.replace(imageRegex, url => {
+                const cleanUrl = url.replace(/["'<>]+$/, ''); // Remove caracteres inválidos
                 return `<div class="image-container">
                           <img src="${cleanUrl}" 
                                class="chat-image" 
@@ -263,10 +264,13 @@
                         </div>`;
             });
         
-            // Passo 3: Processar outros links
-            texto = texto.replace(/(https?:\/\/[^\s]+)/gi, (url) => {
-                return url.includes('.jpg') || url.includes('.jpeg') ? url : `<a href="${url}" target="_blank">${url}</a>`;
+            // Processa outros links
+            texto = texto.replace(/(https?:\/\/[^\s]+)/gi, url => {
+                return url.match(/\.(jpg|jpeg)/i) ? url : `<a href="${url}" target="_blank">${url}</a>`;
             });
+        
+            return texto;
+        }
         
             return texto;
         }
