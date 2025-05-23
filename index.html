@@ -136,6 +136,50 @@
         let veiculosNovos = [];
         let veiculosUsados = [];
         let isDataLoaded = false;
+        let historico = [];
+        const chatDiv = document.getElementById("chat");
+        let isSendingMessages = false;
+
+        async function enviar() {
+            const input = document.getElementById("mensagem");
+            const mensagemUsuario = input.value.trim();
+            if (!mensagemUsuario) return;
+    
+            if (!isDataLoaded) {
+                addAIMessage("Aguarde, ainda estou carregando os dados...");
+                return; // Corrigido: return dentro da função
+            }
+    
+            historico.push({ role: "user", parts: [{ text: mensagemUsuario }] });
+            input.value = "";
+    
+            try {
+                const resposta = await fetch(
+                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-03-25:generateContent?key=AIzaSyASnIX-tYqvRXvebvORrnZh_IhE35CiOf8",
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            contents: [SYSTEM_PROMPT, ...historico],
+                            generationConfig: { temperature: 0.7 }
+                        })
+                    }
+                );
+    
+                const dados = await resposta.json();
+                const textoIA = dados.candidates[0].content.parts[0].text;
+    
+                if (textoIA.includes('***')) {
+                    const messages = splitMessages(textoIA);
+                    await sendSplitMessages(messages);
+                } else {
+                    historico.push({ role: "model", parts: [{ text: textoIA }] });
+                    exibirChat();
+                }
+            } catch (error) {
+                console.error("Erro ao enviar mensagem:", error);
+            }
+        }
 
         // Função para carregar os dados dos veículos
         async function loadVehicleData() {
@@ -345,55 +389,10 @@
         // Inicialização
         window.addEventListener('load', () => {
             ajustarAltura();
-            // Criamos o SYSTEM_PROMPT inicial vazio
             updateSystemPrompt();
-            // Depois carregamos os dados
             loadVehicleData();
         });
         window.addEventListener('resize', ajustarAltura);
-
-        async function enviar() {
-            const input = document.getElementById("mensagem");
-            const mensagemUsuario = input.value.trim();
-            if (!mensagemUsuario) return;
-
-            // Se os dados ainda não carregaram, avisa o usuário
-            if (!isDataLoaded) {
-                // addAIMessage("Ainda estou carregando os dados dos veículos. Por favor, aguarde mais um momento...");
-                return;
-            }
-
-            historico.push({ role: "user", parts: [{ text: mensagemUsuario }] });
-            sessionStorage.setItem("geminiChat", JSON.stringify(historico));
-            exibirChat();
-            input.value = "";
-
-            const resposta = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-03-25:generateContent?key=AIzaSyASnIX-tYqvRXvebvORrnZh_IhE35CiOf8`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [SYSTEM_PROMPT, ...historico],
-                        generationConfig: { temperature: 0.7 }
-                    })
-                }
-            );
-
-            const dados = await resposta.json();
-            const textoIA = dados.candidates[0].content.parts[0].text;
-
-            // Verifica se a mensagem contém *** para dividir
-            if (textoIA.includes('***')) {
-                const messages = splitMessages(textoIA);
-                await sendSplitMessages(messages);
-            } else {
-                historico.push({ role: "model", parts: [{ text: textoIA }] });
-                exibirChat();
-            }
-            
-            sessionStorage.setItem("geminiChat", JSON.stringify(historico));
-        }
 
         document.getElementById("mensagem").addEventListener("keypress", (e) => {
             if (e.key === "Enter") enviar();
