@@ -267,7 +267,8 @@
             texto = texto.replace(/(https?:\/\/[^\s]+)/gi, (url) => {
                 return url.includes('.jpg') || url.includes('.jpeg') ? url : `<a href="${url}" target="_blank">${url}</a>`;
             });
-        
+            texto = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            texto = texto.replace(/__(.*?)__/g, '<b>$1</b>');
             return texto;
         }
         
